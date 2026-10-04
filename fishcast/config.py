@@ -10,6 +10,7 @@ class TrainingConfig:
     learning_rate: float = 1e-3
     weight_decay: float = 1e-4
     classification_weight: float = 1.0
+    seed: int | None = None
     kernel_jitter: float = 1e-3
     hidden_dim: int = 64
     device: str = "cpu"
