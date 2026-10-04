@@ -1,0 +1,404 @@
+[
+ {
+  "title": "Share data files on the team drive",
+  "body": "- Put `krillcast_merged.csv`, `CCAMLR_MPA.json` and the regridded CMIP6 file in one folder on the team Google Drive.\n- Compute a SHA-256 checksum for each (`sha256sum`, or `certutil -hashfile <file> SHA256` on Windows).\n- Add the folder link and checksums to `data/README.md`.\n- Ask one Analysis member to follow the README from scratch and confirm the checksums match.\n\n**Done when:** merged and verified by one other person.\n\n_Planned for week 1._",
+  "labels": [
+   "platform",
+   "good first issue"
+  ],
+  "milestone": "Phase 1: Establish skill (weeks 1-4)",
+  "week": 1,
+  "team": "platform"
+ },
+ {
+  "title": "Get the benchmark running on PACE",
+  "body": "- Start from `jobs/benchmark.sbatch` (already written): check the partition and time limits for our allocation, then add `--seed` once the Analysis task lands.\n- Submit it once on PACE and note run time and queue wait.\n\n**Done when:** one `sbatch` command produces `benchmark_table.csv` in a dated folder, and the run time is posted in the team channel.\n\n_Planned for week 2._",
+  "labels": [
+   "platform",
+   "good first issue"
+  ],
+  "milestone": "Phase 1: Establish skill (weeks 1-4)",
+  "week": 2,
+  "team": "platform"
+ },
+ {
+  "title": "Rebuild the training data with the longitude fix",
+  "body": "The current `krillcast_merged.csv` matched 77% of hauls to the wrong climate grid column (see `docs/CHANGES_preprocessing_v2.md`). The pipeline in `scripts/data/` fixes this.\n\n- Download the historical CMIP6 fields for MPI-ESM1-2-LR with `scripts/data/download_cmip6.py` (on PACE).\n- Regrid with `scripts/data/build_climate_grid.py`, then build `data/krillcast_merged.csv` with `scripts/data/build_dataset.py`.\n- Put the new file on the shared drive and update its checksum in `data/README.md`.\n- Rerun `jobs/benchmark.sbatch` and post the new table.\n\n**Done when:** the rebuilt file is shared and the new benchmark table is posted.\n\n_Planned for week 2._",
+  "labels": [
+   "platform",
+   "good first issue"
+  ],
+  "milestone": "Phase 1: Establish skill (weeks 1-4)",
+  "week": 2,
+  "team": "platform"
+ },
+ {
+  "title": "Demo 1: one-command benchmark",
+  "body": "**Done when:** Fresh clone on the cluster rebuilds the section 2 results table.\n\n_Planned for week 4._",
+  "labels": [
+   "platform"
+  ],
+  "milestone": "Phase 1: Establish skill (weeks 1-4)",
+  "week": 4,
+  "team": "platform"
+ },
+ {
+  "title": "Ingest ERA5 reanalysis",
+  "body": "**Done when:** ERA5 monthly fields downloaded and matched to hauls.\n\n_Planned for week 5._",
+  "labels": [
+   "platform"
+  ],
+  "milestone": "Phase 2: Test new inputs (weeks 5-9)",
+  "week": 5,
+  "team": "platform"
+ },
+ {
+  "title": "Ingest NSIDC sea-ice record",
+  "body": "**Done when:** Sea-ice concentration matched to every haul from 1979.\n\n_Planned for week 6._",
+  "labels": [
+   "platform"
+  ],
+  "milestone": "Phase 2: Test new inputs (weeks 5-9)",
+  "week": 6,
+  "team": "platform"
+ },
+ {
+  "title": "Agree model-output format with Data Viz",
+  "body": "**Done when:** Written data contract for predictions, time series and benchmark tables.\n\n_Planned for week 6._",
+  "labels": [
+   "platform"
+  ],
+  "milestone": "Phase 2: Test new inputs (weeks 5-9)",
+  "week": 6,
+  "team": "platform"
+ },
+ {
+  "title": "Chlorophyll and bathymetry ingest",
+  "body": "**Done when:** ESA OC-CCI chlorophyll and GEBCO depth attached to hauls.\n\n_Planned for week 8._",
+  "labels": [
+   "platform"
+  ],
+  "milestone": "Phase 2: Test new inputs (weeks 5-9)",
+  "week": 8,
+  "team": "platform"
+ },
+ {
+  "title": "Bias-correct CMIP6 against observations",
+  "body": "**Done when:** Corrected future fields for MPI-ESM1-2-LR.\n\n_Planned for week 8._",
+  "labels": [
+   "platform"
+  ],
+  "milestone": "Phase 2: Test new inputs (weeks 5-9)",
+  "week": 8,
+  "team": "platform"
+ },
+ {
+  "title": "Regrid EC-Earth3 and HadGEM3",
+  "body": "**Done when:** All three climate models on the same grid.\n\n_Planned for week 10._",
+  "labels": [
+   "platform"
+  ],
+  "milestone": "Phase 3: Communicate (weeks 10-14)",
+  "week": 10,
+  "team": "platform"
+ },
+ {
+  "title": "Automate scenario runs",
+  "body": "**Done when:** Projections to 2049 for 3 climate models from one job.\n\n_Planned for week 12._",
+  "labels": [
+   "platform"
+  ],
+  "milestone": "Phase 3: Communicate (weeks 10-14)",
+  "week": 12,
+  "team": "platform"
+ },
+ {
+  "title": "Handoff docs for next semester",
+  "body": "**Done when:** Setup, data and run instructions a new cohort can follow.\n\n_Planned for week 14._",
+  "labels": [
+   "platform"
+  ],
+  "milestone": "Phase 3: Communicate (weeks 10-14)",
+  "week": 14,
+  "team": "platform"
+ },
+ {
+  "title": "Add a --seed option to training",
+  "body": "Two runs with the same settings currently give different results, so we can't tell a real improvement from noise.\n\n- Add `--seed` to `scripts/train_fishcast.py`; seed Python, NumPy and PyTorch before the data loads.\n- Save the seed in `metrics.json` under `config`.\n- Add a test: two one-epoch runs with the same seed on the synthetic data give identical `test_metrics`.\n\n**Done when:** merged and the test passes in CI.\n\nFiles: `scripts/train_fishcast.py`, `fishcast/config.py`, `tests/`\n\n_Planned for week 1._",
+  "labels": [
+   "analysis",
+   "good first issue"
+  ],
+  "milestone": "Phase 1: Establish skill (weeks 1-4)",
+  "week": 1,
+  "team": "analysis"
+ },
+ {
+  "title": "Why does the climate-only GP rank hotspots backwards?",
+  "body": "Its test ROC-AUC is about 0.35, so it ranks ordinary hauls above hotspots more often than chance.\n\n- Train `climate_conditioned_gp` for 20 epochs and check the sign of `hotspot_scale` in `final_gp_diagnostics`.\n- Compare predicted hotspot probability with the observed hotspot rate per 5\u00b0 sector in the test years.\n- Check whether 1 minus the probability gives an AUC near 0.65; if so, find where the sign is lost.\n\n**Done when:** a write-up in `analysis/experiments/` with the likely cause, or the causes ruled out.\n\n_Planned for week 1._",
+  "labels": [
+   "analysis",
+   "good first issue"
+  ],
+  "milestone": "Phase 1: Establish skill (weeks 1-4)",
+  "week": 1,
+  "team": "analysis"
+ },
+ {
+  "title": "Methods research kickoff (optional)",
+  "body": "- Read Elith et al. (2008), *A working guide to boosted regression trees*, and the sdmTMB introduction (https://sdmTMB.github.io/sdmTMB/articles/basic-intro.html).\n- Write one page in `analysis/methods/initial-survey.md`: which other approach looks most promising for our data (12,544 hauls, 36% zero catches, uneven in space and time) and why.\n- Review the other Analysis week 1 pull requests.\n\n**Done when:** the survey is merged.\n\n_Planned for week 2._",
+  "labels": [
+   "analysis",
+   "good first issue",
+   "optional"
+  ],
+  "milestone": "Phase 1: Establish skill (weeks 1-4)",
+  "week": 2,
+  "team": "analysis"
+ },
+ {
+  "title": "Add stationary-kernel GP baseline",
+  "body": "**Done when:** Included in benchmark_skill.py results.\n\n_Planned for week 3._",
+  "labels": [
+   "analysis"
+  ],
+  "milestone": "Phase 1: Establish skill (weeks 1-4)",
+  "week": 3,
+  "team": "analysis"
+ },
+ {
+  "title": "Spatially blocked cross-validation",
+  "body": "**Done when:** Benchmark reports block-CV scores alongside the time split.\n\n_Planned for week 4._",
+  "labels": [
+   "analysis"
+  ],
+  "milestone": "Phase 1: Establish skill (weeks 1-4)",
+  "week": 4,
+  "team": "analysis"
+ },
+ {
+  "title": "Calibration check",
+  "body": "**Done when:** Reliability diagram and write-up for hotspot probabilities.\n\n_Planned for week 4._",
+  "labels": [
+   "analysis"
+  ],
+  "milestone": "Phase 1: Establish skill (weeks 1-4)",
+  "week": 4,
+  "team": "analysis"
+ },
+ {
+  "title": "Lock the skill criteria",
+  "body": "**Done when:** Section 7 criteria agreed and recorded before any new results.\n\n_Planned for week 4._",
+  "labels": [
+   "analysis"
+  ],
+  "milestone": "Phase 1: Establish skill (weeks 1-4)",
+  "week": 4,
+  "team": "analysis"
+ },
+ {
+  "title": "Retrain climate-only models on observed inputs",
+  "body": "**Done when:** Benchmark rerun with ERA5 and NSIDC covariates.\n\n_Planned for week 6._",
+  "labels": [
+   "analysis"
+  ],
+  "milestone": "Phase 2: Test new inputs (weeks 5-9)",
+  "week": 6,
+  "team": "analysis"
+ },
+ {
+  "title": "Sea-ice timing features",
+  "body": "**Done when:** Retreat date, advance date and ice-free days tested one at a time.\n\n_Planned for week 7._",
+  "labels": [
+   "analysis"
+  ],
+  "milestone": "Phase 2: Test new inputs (weeks 5-9)",
+  "week": 7,
+  "team": "analysis"
+ },
+ {
+  "title": "Bloom timing and bathymetry features",
+  "body": "**Done when:** Each tested against the climate-only baselines.\n\n_Planned for week 8._",
+  "labels": [
+   "analysis"
+  ],
+  "milestone": "Phase 2: Test new inputs (weeks 5-9)",
+  "week": 8,
+  "team": "analysis"
+ },
+ {
+  "title": "Try a sector-year target",
+  "body": "**Done when:** Compare haul-level vs sector-year mean density.\n\n_Planned for week 8._",
+  "labels": [
+   "analysis"
+  ],
+  "milestone": "Phase 2: Test new inputs (weeks 5-9)",
+  "week": 8,
+  "team": "analysis"
+ },
+ {
+  "title": "Methods prototype benchmarked (optional)",
+  "body": "**Done when:** One alternative model run through benchmark_skill.py.\n\n_Planned for week 9._",
+  "labels": [
+   "analysis",
+   "optional"
+  ],
+  "milestone": "Phase 2: Test new inputs (weeks 5-9)",
+  "week": 9,
+  "team": "analysis"
+ },
+ {
+  "title": "Skill decision",
+  "body": "**Done when:** Criteria checked on test years; decision written up.\n\n_Planned for week 12._",
+  "labels": [
+   "analysis"
+  ],
+  "milestone": "Phase 3: Communicate (weeks 10-14)",
+  "week": 12,
+  "team": "analysis"
+ },
+ {
+  "title": "Ensemble projections and spillover estimate",
+  "body": "**Done when:** If criteria pass: share of hotspots outside MPAs by 2040 with range.\n\n_Planned for week 13._",
+  "labels": [
+   "analysis"
+  ],
+  "milestone": "Phase 3: Communicate (weeks 10-14)",
+  "week": 13,
+  "team": "analysis"
+ },
+ {
+  "title": "Methods and results write-up",
+  "body": "**Done when:** Draft for the brief and showcase talk.\n\n_Planned for week 14._",
+  "labels": [
+   "analysis"
+  ],
+  "milestone": "Phase 3: Communicate (weeks 10-14)",
+  "week": 14,
+  "team": "analysis"
+ },
+ {
+  "title": "South-polar projection prototype",
+  "body": "A working starter is in `viz/prototype/polar_map.html` (land, MPAs and 500 hauls in a south-polar projection). Run it with `python -m http.server` from the repo root.\n\n- Compare `d3.geoAzimuthalEqualArea` and `d3.geoStereographic` and pick one, with a sentence on why.\n- Add CCAMLR management subarea boundaries (48.1, 48.2, 48.3).\n- Add a control for sample size and a colour legend with real numbers.\n\n**Done when:** merged, with hauls near 180 degrees drawn in the right place.\n\n_Planned for week 1._",
+  "labels": [
+   "viz",
+   "good first issue"
+  ],
+  "milestone": "Phase 1: Establish skill (weeks 1-4)",
+  "week": 1,
+  "team": "viz"
+ },
+ {
+  "title": "App skeleton and preview deploys",
+  "body": "- Set up `viz/app/` with the chosen framework and a lint step in CI.\n- Publish from `main` with GitHub Pages (https://docs.github.com/en/pages/getting-started-with-github-pages/creating-a-github-pages-site).\n\n**Done when:** the empty app is live on GitHub Pages.\n\n_Planned for week 2._",
+  "labels": [
+   "viz",
+   "good first issue"
+  ],
+  "milestone": "Phase 1: Establish skill (weeks 1-4)",
+  "week": 2,
+  "team": "viz"
+ },
+ {
+  "title": "Style guide draft",
+  "body": "**Done when:** viz/STYLE_GUIDE.md reviewed by one person from each subteam.\n\n_Planned for week 2._",
+  "labels": [
+   "viz",
+   "good first issue"
+  ],
+  "milestone": "Phase 1: Establish skill (weeks 1-4)",
+  "week": 2,
+  "team": "viz"
+ },
+ {
+  "title": "Leaderboard chart from benchmark output",
+  "body": "A working starter is in `viz/figures/leaderboard.py`. Run it on a `benchmark_table.csv`.\n\n- Apply the style guide (fonts, colours) once it exists.\n- Add a version that shows each seed as a faint dot behind the mean.\n- Make the y-axis labels plain English (for example \"Our GP, with recent krill\").\n\n**Done when:** merged and used in the Demo 1 slides.\n\n_Planned for week 3._",
+  "labels": [
+   "viz",
+   "good first issue"
+  ],
+  "milestone": "Phase 1: Establish skill (weeks 1-4)",
+  "week": 3,
+  "team": "viz"
+ },
+ {
+  "title": "Leaderboard page in the app",
+  "body": "**Done when:** Updates automatically from each run's metrics.json.\n\n_Planned for week 4._",
+  "labels": [
+   "viz"
+  ],
+  "milestone": "Phase 1: Establish skill (weeks 1-4)",
+  "week": 4,
+  "team": "viz"
+ },
+ {
+  "title": "Static figure pipeline",
+  "body": "**Done when:** One command regenerates every figure.\n\n_Planned for week 4._",
+  "labels": [
+   "viz"
+  ],
+  "milestone": "Phase 1: Establish skill (weeks 1-4)",
+  "week": 4,
+  "team": "viz"
+ },
+ {
+  "title": "Polar web map with MPAs and subareas",
+  "body": "**Done when:** Coastline, bathymetry, CCAMLR subareas and MPAs live in the app.\n\n_Planned for week 6._",
+  "labels": [
+   "viz"
+  ],
+  "milestone": "Phase 2: Test new inputs (weeks 5-9)",
+  "week": 6,
+  "team": "viz"
+ },
+ {
+  "title": "Haul explorer",
+  "body": "**Done when:** Filter 12,544 hauls by decade, season and catch; coverage layer.\n\n_Planned for week 7._",
+  "labels": [
+   "viz"
+  ],
+  "milestone": "Phase 2: Test new inputs (weeks 5-9)",
+  "week": 7,
+  "team": "viz"
+ },
+ {
+  "title": "Data API v1",
+  "body": "**Done when:** FastAPI service with tests serving predictions, time series and benchmark tables.\n\n_Planned for week 8._",
+  "labels": [
+   "viz"
+  ],
+  "milestone": "Phase 2: Test new inputs (weeks 5-9)",
+  "week": 8,
+  "team": "viz"
+ },
+ {
+  "title": "Demo 2 diagnostic views",
+  "body": "**Done when:** Error maps by sector and feature-effect plots.\n\n_Planned for week 9._",
+  "labels": [
+   "viz"
+  ],
+  "milestone": "Phase 2: Test new inputs (weeks 5-9)",
+  "week": 9,
+  "team": "viz"
+ },
+ {
+  "title": "Forecast viewer",
+  "body": "**Done when:** Time slider 2025-2049, model and scenario selectors, agreement stippling, spillover chart.\n\n_Planned for week 12._",
+  "labels": [
+   "viz"
+  ],
+  "milestone": "Phase 3: Communicate (weeks 10-14)",
+  "week": 12,
+  "team": "viz"
+ },
+ {
+  "title": "Release 1.0",
+  "body": "**Done when:** Loads under 3 s, accessible, documented and public; final figures.\n\n_Planned for week 14._",
+  "labels": [
+   "viz"
+  ],
+  "milestone": "Phase 3: Communicate (weeks 10-14)",
+  "week": 14,
+  "team": "viz"
+ }
+]

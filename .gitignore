@@ -1,0 +1,73 @@
+# Python
+__pycache__/
+*.py[cod]
+*.so
+*.egg-info/
+.pytest_cache/
+.ruff_cache/
+
+# Virtual envs
+.venv/
+.venv-*/
+.venv-exomebench/
+.venv-geobench/
+venv/
+
+# Build
+build/
+dist/
+
+# Runtime artifacts
+artifacts/
+logs/
+results/
+test_results/
+cache/
+.tmp/
+external/
+data/*
+wandb/
+.hf-cache/
+.cache/
+*.log
+*.out
+
+# Benchmark heavy artifacts (safety net)
+**/hf_output/
+**/outputs/
+**/checkpoints/
+**/downloads/
+**/datasets/
+
+# Large model/data blobs
+*.pt
+*.pth
+*.ckpt
+*.bin
+*.safetensors
+*.h5
+*.hdf5
+*.npz
+*.npy
+*.parquet
+*.zip
+*.tar
+*.tar.gz
+*.tgz
+
+# OS/editor
+.DS_Store
+.idea/
+.vscode/
+# FishCast
+krillcast/
+fishcast/bin/
+*.nc
+_backup*/
+.mplcache/
+.pycache/
+*.bak
+!data/README.md
+
+# generated figures
+viz/figures/out/

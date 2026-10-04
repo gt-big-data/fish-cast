@@ -1,0 +1,11 @@
+# Who reviews what. Replace the placeholders with GitHub usernames, then
+# move this file to .github/CODEOWNERS. Reviews are requested automatically.
+*                    @NASH_GITHUB_USERNAME
+/fishcast/           @ANALYSIS_LEAD @PLATFORM_LEAD
+/scripts/            @ANALYSIS_LEAD @PLATFORM_LEAD
+/jobs/               @PLATFORM_LEAD
+/data/               @PLATFORM_LEAD
+/notebooks/          @PLATFORM_LEAD
+/analysis/           @ANALYSIS_LEAD
+/viz/                @VIZ_LEAD
+/tests/              @ANALYSIS_LEAD @PLATFORM_LEAD
