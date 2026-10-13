@@ -1,6 +1,7 @@
 # Data
 
-Nothing in this folder is committed to git. Get the files below from the team shared drive (ask a Platform lead for the link) and place them here.
+Nothing in this folder is committed to git. Get the files below from the FishCast Data folder on Google Drive and place them here:
+https://drive.google.com/drive/folders/1bZsC04b6aWKsyWe3-XNH_PEvlAaAhTcC
 
 | File | Size | What it is |
 | --- | --- | --- |
@@ -8,6 +9,17 @@ Nothing in this folder is committed to git. Get the files below from the team sh
 | `mpi_esm1_2_ssp245_regridded.nc` | 1.5 GB | Future climate projection (MPI-ESM1-2-LR, SSP2-4.5, 2015-2049). Only needed for `forecast.py` |
 | `CCAMLR_MPA.json` | 220 KB | Marine protected area boundaries, in EPSG:6932 (metres, south-polar projection) |
 | `CCAMLR_MPA_wgs84.geojson` | 190 KB | The same boundaries in longitude/latitude, made by `scripts/data/convert_mpa_to_wgs84.py`; use for maps |
+
+## Checksums (SHA-256)
+
+Check your download matches: `sha256sum <file>` (macOS/Linux, or `shasum -a 256`) or `certutil -hashfile <file> SHA256` (Windows).
+
+| File | SHA-256 |
+| --- | --- |
+| `krillcast_merged.csv` (v1) | `74c5cbc57ca3113df1ae159a0ae1dc66d025acfad850aa07f0635e6bffb8b390` |
+| `mpi_esm1_2_ssp245_regridded.nc` | `bde765659ac2ffae478222e2e2e80b8bd8c3c196e199ae478a5779f77247e31b` |
+| `CCAMLR_MPA.json` | `bc0848edb05090dfe4c0c2833ea5a5658f662d6e592bbcafb642e4e1af1bbd4a` |
+| `CCAMLR_MPA_wgs84.geojson` | `e3fa68566eff7d3a95efec325d7cb9319c7345c39d9ff9fccaf7acf39b04fd99` |
 
 ## Original sources
 
