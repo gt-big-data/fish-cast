@@ -59,6 +59,7 @@ def parse_args() -> argparse.Namespace:
     parser.add_argument("--lag-mean-window", type=int, default=3, help="Rolling lag window used for mean krill density in lag_feature_gp.")
     parser.add_argument("--lag-hotspot-step", type=int, default=1, help="Lag step used for lagged hotspot state in lag_feature_gp.")
     parser.add_argument("--latent-state-dim", type=int, default=8, help="Latent ecological state width for latent_state_augmented_gp.")
+    parser.add_argument("--seed", type=int, default=None, help="Random seed for reproducibility.")
     return parser.parse_args()
 
 
@@ -67,6 +68,15 @@ def main() -> None:
     torch.backends.cudnn.allow_tf32 = True
 
     args = parse_args()
+    if args.seed is not None:
+        import random
+        import numpy as np
+        random.seed(args.seed)
+        np.random.seed(args.seed)
+        torch.manual_seed(args.seed)
+        if torch.cuda.is_available():
+            torch.cuda.manual_seed_all(args.seed)
+
     canonical_model_type = "autoregressive_gp" if args.model_type == "lag_feature_gp" else args.model_type
     if canonical_model_type == "autoregressive_sequence":
         bundle = load_autoregressive_dataset(
@@ -118,6 +128,7 @@ def main() -> None:
                 learning_rate=args.learning_rate,
                 weight_decay=args.weight_decay,
                 classification_weight=classification_weights[0],
+                seed=args.seed,
                 model_name=canonical_model_type,
                 hidden_dim=args.hidden_dim,
                 device=args.device,
@@ -153,6 +164,7 @@ def main() -> None:
                 learning_rate=args.learning_rate,
                 weight_decay=args.weight_decay,
                 classification_weight=weight,
+                seed=args.seed,
                 model_name=canonical_model_type,
                 hidden_dim=args.hidden_dim,
                 device=args.device,
