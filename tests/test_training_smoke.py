@@ -1,4 +1,8 @@
 """One-epoch training run on synthetic data: checks the pipeline end to end and that test metrics are written."""
+import json
+import subprocess
+import sys
+
 from fishcast import TrainingConfig, load_krill_dataset, train_model
 
 
@@ -11,15 +15,13 @@ def test_gp_trains_and_reports_test_metrics(synthetic_csv, tmp_path):
     assert summary["test_metrics"] is not None
     assert "rmse_skill_vs_constant" in summary["test_metrics"]
 
-import subprocess
-import json
 
 def test_reproducibility_with_seed(synthetic_csv, tmp_path):
     out1 = tmp_path / "run1"
     out2 = tmp_path / "run2"
     
     cmd = [
-        "python", "-m", "scripts.train_fishcast",
+        sys.executable, "-m", "scripts.train_fishcast",
         "--data", str(synthetic_csv),
         "--epochs", "1",
         "--seed", "42",

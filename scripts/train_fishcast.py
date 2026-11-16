@@ -2,9 +2,11 @@ from __future__ import annotations
 
 import argparse
 import json
+import random
 from pathlib import Path
 from typing import List
 
+import numpy as np
 import torch
 
 from fishcast import TrainingConfig, load_autoregressive_dataset, load_convlstm_dataset, load_krill_dataset, train_model
@@ -69,8 +71,6 @@ def main() -> None:
 
     args = parse_args()
     if args.seed is not None:
-        import random
-        import numpy as np
         random.seed(args.seed)
         np.random.seed(args.seed)
         torch.manual_seed(args.seed)
