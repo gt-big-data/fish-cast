@@ -310,8 +310,8 @@ def train_gp_model(
 
             if is_better_checkpoint:
                 best_state = {
-                    "model": {key: value.detach().cpu() for key, value in model.state_dict().items()},
-                    "likelihood": {key: value.detach().cpu() for key, value in model.likelihood.state_dict().items()},
+                    "model": {key: value.detach().cpu().clone() for key, value in model.state_dict().items()},
+                    "likelihood": {key: value.detach().cpu().clone() for key, value in model.likelihood.state_dict().items()},
                     "best_threshold": best_threshold,
                     "best_validation_rmse": val_metrics["rmse"],
                     "best_validation_auc": val_metrics["auc"],
@@ -321,8 +321,8 @@ def train_gp_model(
 
     if best_state is None:
         best_state = {
-            "model": {key: value.detach().cpu() for key, value in model.state_dict().items()},
-            "likelihood": {key: value.detach().cpu() for key, value in model.likelihood.state_dict().items()},
+            "model": {key: value.detach().cpu().clone() for key, value in model.state_dict().items()},
+            "likelihood": {key: value.detach().cpu().clone() for key, value in model.likelihood.state_dict().items()},
             "best_threshold": best_threshold,
             "best_validation_rmse": history[-1]["val_rmse"] if history else float("nan"),
             "best_validation_auc": history[-1]["val_auc"] if history else float("nan"),

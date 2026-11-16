@@ -93,10 +93,10 @@ def fit_catboost(train, val, test, features, seed=0):
     return reg.predict(test[features]), clf.predict_proba(test[features])[:, 1], dict(zip(features, reg.get_feature_importance()))
 
 
-def gp_test_predictions(run_dir: str, test_index: np.ndarray):
+def gp_test_predictions(run_dir: str, test_index: np.ndarray, data_path: str):
     from fishcast.visualization import load_trained_fishcast
 
-    model, bundle, run_metrics = load_trained_fishcast(run_dir)
+    model, bundle, run_metrics = load_trained_fishcast(run_dir, data_path=data_path)
     model.eval(); model.gp_model.eval(); model.likelihood.eval()
     with torch.no_grad():
         out = model(bundle.features[test_index], bundle.coords[test_index])
@@ -145,7 +145,7 @@ def main() -> None:
     test_index = test.index.to_numpy()
     by_name: dict[str, list] = {}
     for run in args.gp_runs:
-        pred, score, name, uses_lags = gp_test_predictions(run, test_index)
+        pred, score, name, uses_lags = gp_test_predictions(run, test_index, args.data)
         by_name.setdefault((name, uses_lags), []).append((run, pred, score))
     for (name, uses_lags), runs in by_name.items():
         label = f"GP {name}"
