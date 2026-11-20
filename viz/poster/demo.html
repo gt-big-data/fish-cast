@@ -1,0 +1,545 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>FishCast Demo — Southern Ocean map</title>
+<style>
+  :root {
+    --ink: #0f2a38;
+    --muted: #4a5c66;
+    --panel: #f4f7f9;
+    --line: #d0dbe2;
+    --accent: #1f6f8b;
+    --mpa: #c45c26;
+    --ocean: #eef4f7;
+    --land: #c9cfc4;
+  }
+  * { box-sizing: border-box; }
+  body {
+    margin: 0;
+    font: 14px/1.4 "Segoe UI", system-ui, sans-serif;
+    color: var(--ink);
+    background: #e8eef2;
+  }
+  .app {
+    max-width: 1280px;
+    margin: 12px auto;
+    background: #fff;
+    border: 1px solid var(--line);
+    border-radius: 10px;
+    overflow: hidden;
+    box-shadow: 0 10px 30px rgba(15, 42, 56, 0.08);
+  }
+  header {
+    display: flex;
+    justify-content: space-between;
+    gap: 12px;
+    align-items: center;
+    padding: 12px 16px;
+    border-bottom: 1px solid var(--line);
+    background: linear-gradient(180deg, #f8fbfc, #eef4f7);
+  }
+  header h1 { margin: 0; font-size: 18px; }
+  header p { margin: 2px 0 0; color: var(--muted); font-size: 12px; }
+  .badge {
+    display: inline-block; margin-left: 8px; padding: 2px 8px;
+    border-radius: 999px; background: #d9eef5; color: var(--accent);
+    font-size: 11px; font-weight: 600; vertical-align: middle;
+  }
+  .layout { display: grid; grid-template-columns: 280px 1fr 280px; min-height: 680px; }
+  .side {
+    background: var(--panel);
+    padding: 14px;
+    border-right: 1px solid var(--line);
+    overflow-y: auto;
+  }
+  .side.right { border-right: 0; border-left: 1px solid var(--line); }
+  .side h2 {
+    margin: 14px 0 8px; font-size: 11px; text-transform: uppercase;
+    letter-spacing: 0.06em; color: var(--muted);
+  }
+  .side h2:first-child { margin-top: 0; }
+  .ctrl { margin-bottom: 10px; }
+  .ctrl label { display: block; font-size: 12px; margin-bottom: 4px; color: var(--muted); }
+  .ctrl .row { display: flex; gap: 8px; align-items: center; }
+  input[type="range"] { width: 100%; }
+  select, button, .toggle {
+    border: 1px solid var(--line); background: #fff; color: var(--ink);
+    border-radius: 6px; padding: 7px 10px; font-size: 13px; cursor: pointer;
+  }
+  select { width: 100%; }
+  button.active, .toggle.on {
+    background: var(--accent); border-color: var(--accent); color: #fff;
+  }
+  .toggles { display: flex; flex-wrap: wrap; gap: 6px; }
+  .map-pane {
+    background: #f7fafb; position: relative;
+    display: flex; align-items: center; justify-content: center;
+  }
+  #map {
+    width: 100%; height: 100%; min-height: 680px;
+    cursor: grab; touch-action: none;
+  }
+  #map.dragging { cursor: grabbing; }
+  .stat {
+    margin: 0 0 8px; padding: 8px 10px; background: #fff;
+    border: 1px solid var(--line); border-radius: 8px;
+  }
+  .stat strong { display: block; font-size: 18px; margin-top: 2px; }
+  .detail {
+    background: #fff; border: 1px solid var(--line); border-radius: 8px;
+    padding: 10px; font-size: 13px; min-height: 140px;
+  }
+  .detail dt { color: var(--muted); float: left; clear: left; width: 72px; }
+  .detail dd { margin: 0 0 4px 76px; }
+  .legend-bar {
+    height: 12px; border-radius: 4px; margin: 6px 0;
+    background: linear-gradient(90deg, #440154, #31688e, #35b779, #fde725);
+  }
+  .hint { font-size: 12px; color: var(--muted); }
+  footer {
+    display: flex; justify-content: space-between; gap: 12px; align-items: center;
+    padding: 8px 14px; border-top: 1px solid var(--line); font-size: 12px; color: var(--muted);
+  }
+  #status { color: #b05000; }
+  a { color: var(--accent); }
+  @media (max-width: 980px) {
+    .layout { grid-template-columns: 1fr; }
+    .side { border: 0; border-bottom: 1px solid var(--line); }
+    .side.right { border-top: 1px solid var(--line); }
+    #map { min-height: 520px; }
+  }
+</style>
+</head>
+<body>
+  <div class="app">
+    <header>
+      <div>
+        <h1>FishCast map demo <span class="badge">interactive</span></h1>
+        <p>KRILLBASE hauls + CCAMLR MPAs · filter, click, rotate, zoom</p>
+      </div>
+      <div class="hint">Drag to pan · scroll to zoom · <span id="status">Loading…</span></div>
+    </header>
+    <div class="layout">
+      <aside class="side">
+        <h2>Years</h2>
+        <div class="ctrl">
+          <label>From <span id="yearMinLabel">1926</span></label>
+          <input type="range" id="yearMin" min="1926" max="2016" value="1926" step="1">
+        </div>
+        <div class="ctrl">
+          <label>To <span id="yearMaxLabel">2016</span></label>
+          <input type="range" id="yearMax" min="1926" max="2016" value="2016" step="1">
+        </div>
+        <div class="toggles" id="decadeChips"></div>
+
+        <h2>Display</h2>
+        <div class="toggles">
+          <button type="button" class="toggle on" id="togZeros" data-on="1">Show zeros</button>
+          <button type="button" class="toggle on" id="togMpa" data-on="1">Show MPAs</button>
+          <button type="button" class="toggle" id="togHot" data-on="0">Hotspots only</button>
+        </div>
+
+        <h2>Density filter</h2>
+        <div class="ctrl">
+          <label>Min density (log10): <span id="densLabel">all</span></label>
+          <input type="range" id="densMin" min="-2" max="3" value="-2" step="0.1">
+        </div>
+
+        <h2>Color by</h2>
+        <div class="ctrl">
+          <select id="colorMode">
+            <option value="density">Density (log)</option>
+            <option value="presence">Presence only</option>
+          </select>
+        </div>
+
+        <h2>Projection</h2>
+        <div class="ctrl">
+          <select id="projSelect">
+            <option value="equalArea">Azimuthal equal-area</option>
+            <option value="stereo">Stereographic</option>
+          </select>
+        </div>
+
+        <h2>View</h2>
+        <div class="ctrl">
+          <label>Rotate longitude: <span id="rotLabel">0°</span></label>
+          <input type="range" id="rotate" min="-180" max="180" value="0" step="5">
+        </div>
+        <div class="toggles">
+          <button type="button" id="btnReset">Reset view</button>
+          <button type="button" id="btnPeninsula">Peninsula</button>
+          <button type="button" id="btnRoss">Ross Sea</button>
+        </div>
+      </aside>
+
+      <div class="map-pane">
+        <svg id="map" viewBox="0 0 720 720" role="img" aria-label="Interactive Antarctic krill map"></svg>
+      </div>
+
+      <aside class="side right">
+        <h2>Filtered stats</h2>
+        <div class="stat">Hauls shown<strong id="statN">—</strong></div>
+        <div class="stat">Empty nets<strong id="statZeros">—</strong></div>
+        <div class="stat">Year span<strong id="statYears">—</strong></div>
+        <div class="stat">Mean density (positives)<strong id="statMean">—</strong></div>
+
+        <h2>Legend</h2>
+        <div class="legend-bar" id="legendBar"></div>
+        <div class="hint" id="legendText">Krill density (log scale)</div>
+        <div class="hint" style="margin-top:8px">
+          <span style="display:inline-block;width:10px;height:10px;border-radius:50%;background:#9aa;border:1px solid #33424a;vertical-align:-1px"></span>
+          Zero catch &nbsp;
+          <span style="display:inline-block;width:14px;height:3px;background:var(--mpa);vertical-align:middle"></span>
+          MPA
+        </div>
+
+        <h2>Selected haul</h2>
+        <div class="detail" id="detail">
+          <span class="hint">Click a point on the map.</span>
+        </div>
+
+        <p class="hint" style="margin-top:14px">
+          Code:
+          <a href="https://github.com/aye1024/fish-cast" target="_blank" rel="noopener">aye1024/fish-cast</a>
+          ·
+          <a href="https://aye1024.github.io/fish-cast/" target="_blank" rel="noopener">live demo</a>
+        </p>
+      </aside>
+    </div>
+    <footer>
+      <span>BDBI Demo Day 2026 · Georgia Tech</span>
+      <span id="note">Loading hauls…</span>
+    </footer>
+  </div>
+
+<script src="https://cdn.jsdelivr.net/npm/d3@7.9.0/dist/d3.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/topojson-client@3.1.0/dist/topojson-client.min.js"></script>
+<script>
+const SIZE = 720;
+const DATA = "./data/";
+const svg = d3.select("#map");
+const gRoot = svg.append("g");
+const gBase = gRoot.append("g");
+const gMpa = gRoot.append("g");
+const gHauls = gRoot.append("g");
+
+let hauls = [];
+let mpaFeatures = [];
+let projection, path;
+let transform = d3.zoomIdentity;
+let selected = null;
+
+const state = {
+  yearMin: 1926,
+  yearMax: 2016,
+  showZeros: true,
+  showMpa: true,
+  hotspotsOnly: false,
+  densMinLog: -2,
+  colorMode: "density",
+  proj: "equalArea",
+  rotate: 0,
+};
+
+function rewind(feature) {
+  const g = feature.geometry;
+  const polys = g.type === "Polygon" ? [g.coordinates] : g.coordinates;
+  for (const poly of polys) {
+    for (const ring of poly) {
+      if (d3.geoArea({ type: "Polygon", coordinates: [ring] }) > 2 * Math.PI) ring.reverse();
+    }
+  }
+  return feature;
+}
+
+function makeProjection() {
+  const base = state.proj === "stereo" ? d3.geoStereographic() : d3.geoAzimuthalEqualArea();
+  projection = base
+    .rotate([state.rotate, 90])
+    .clipAngle(55)
+    .fitExtent([[20, 20], [SIZE - 20, SIZE - 20]], { type: "Sphere" });
+  path = d3.geoPath(projection);
+}
+
+function drawBase(world) {
+  gBase.selectAll("*").remove();
+  gBase.append("path").datum({ type: "Sphere" }).attr("d", path).attr("fill", "var(--ocean)");
+  gBase.append("path").datum(d3.geoGraticule().step([30, 10])())
+    .attr("d", path).attr("fill", "none").attr("stroke", "#d5e0e6").attr("stroke-width", 0.6);
+  gBase.append("path")
+    .datum(topojson.feature(world, world.objects.land))
+    .attr("d", path)
+    .attr("fill", "var(--land)")
+    .attr("stroke", "#9aa59a")
+    .attr("stroke-width", 0.4);
+}
+
+function drawMpa() {
+  gMpa.selectAll("*").remove();
+  if (!state.showMpa) return;
+  gMpa.selectAll("path")
+    .data(mpaFeatures)
+    .join("path")
+    .attr("d", path)
+    .attr("fill", "var(--mpa)")
+    .attr("fill-opacity", 0.22)
+    .attr("stroke", "var(--mpa)")
+    .attr("stroke-width", 1.2)
+    .append("title")
+    .text(d => `${d.properties.GAR_Short_Label || ""}: ${d.properties.GAR_Name || "MPA"}`);
+}
+
+function hotspotCutoff(rows) {
+  const pos = rows.map(d => d.n).filter(n => n > 0).sort(d3.ascending);
+  if (!pos.length) return Infinity;
+  return d3.quantileSorted(pos, 0.9);
+}
+
+function filtered() {
+  const cut = state.hotspotsOnly ? hotspotCutoff(hauls) : -Infinity;
+  const densFloor = Math.pow(10, state.densMinLog);
+  return hauls.filter(d => {
+    const y = Math.floor(d.y);
+    if (y < state.yearMin || y > state.yearMax) return false;
+    if (!state.showZeros && d.n <= 0) return false;
+    if (state.hotspotsOnly && d.n < cut) return false;
+    if (d.n > 0 && d.n < densFloor && state.densMinLog > -2) return false;
+    if (state.densMinLog > -2 && d.n <= 0) return false;
+    return true;
+  });
+}
+
+function colorScale(rows) {
+  if (state.colorMode === "presence") {
+    return n => (n > 0 ? "#1f6f8b" : "#b0b8be");
+  }
+  const maxN = d3.max(rows, d => d.n) || 1000;
+  const seq = d3.scaleSequentialLog(d3.interpolateViridis).domain([1e-2, Math.max(1, maxN)]);
+  return n => (n > 0 ? seq(Math.max(1e-2, n)) : "#c5ccd1");
+}
+
+function fmt(v, digits = 2) {
+  if (v === null || v === undefined || Number.isNaN(v)) return "—";
+  return Number(v).toFixed(digits);
+}
+
+function showDetail(d) {
+  selected = d;
+  const el = document.getElementById("detail");
+  if (!d) {
+    el.innerHTML = '<span class="hint">Click a point on the map.</span>';
+    return;
+  }
+  el.innerHTML = `
+    <dl>
+      <dt>Date</dt><dd>${d.d}</dd>
+      <dt>Year</dt><dd>${fmt(d.y, 3)}</dd>
+      <dt>Lat / Lon</dt><dd>${fmt(d.lat, 2)}, ${fmt(d.lon, 2)}</dd>
+      <dt>Density</dt><dd>${d.n <= 0 ? "0 (empty net)" : fmt(d.n, 3) + " / m²"}</dd>
+      <dt>SST</dt><dd>${fmt(d.sst, 2)} °C</dd>
+      <dt>Ice area</dt><dd>${fmt(d.sia, 3)}</dd>
+      <dt>Ice thick.</dt><dd>${d.sit === null || d.sit === undefined ? "—" : fmt(d.sit, 3) + " m"}</dd>
+      <dt>Salinity</dt><dd>${fmt(d.sss, 2)}</dd>
+    </dl>`;
+}
+
+function updateStats(rows) {
+  const n = rows.length;
+  const zeros = rows.filter(d => d.n <= 0).length;
+  const pos = rows.filter(d => d.n > 0).map(d => d.n);
+  const ymin = n ? Math.floor(d3.min(rows, d => d.y)) : "—";
+  const ymax = n ? Math.floor(d3.max(rows, d => d.y)) : "—";
+  document.getElementById("statN").textContent = n.toLocaleString();
+  document.getElementById("statZeros").textContent = n ? `${zeros.toLocaleString()} (${(100 * zeros / n).toFixed(1)}%)` : "—";
+  document.getElementById("statYears").textContent = n ? `${ymin}–${ymax}` : "—";
+  document.getElementById("statMean").textContent = pos.length ? fmt(d3.mean(pos), 2) : "—";
+  document.getElementById("note").textContent =
+    `${n.toLocaleString()} hauls · ${state.proj === "stereo" ? "stereographic" : "equal-area"} · rotate ${state.rotate}°`;
+}
+
+function drawHauls() {
+  const rows = filtered();
+  const color = colorScale(hauls);
+  updateStats(rows);
+
+  const sel = gHauls.selectAll("circle").data(rows, d => d.d + "|" + d.lat + "|" + d.lon + "|" + d.n);
+  sel.exit().remove();
+  sel.enter().append("circle")
+    .attr("r", 2.4)
+    .attr("stroke", "#33424a")
+    .attr("stroke-width", 0.35)
+    .attr("cursor", "pointer")
+    .on("click", (event, d) => {
+      event.stopPropagation();
+      showDetail(d);
+      drawHauls();
+    })
+    .append("title")
+    .text(d => `${d.d}: ${d.n} krill/m²`);
+
+  gHauls.selectAll("circle")
+    .attr("transform", d => {
+      const p = projection([d.lon, d.lat]);
+      return p ? `translate(${p[0]},${p[1]})` : "translate(-99,-99)";
+    })
+    .attr("fill", d => color(d.n))
+    .attr("opacity", d => (selected && selected === d ? 1 : 0.85))
+    .attr("r", d => (selected && selected === d ? 5 : (d.n > 0 ? 2.5 : 2.0)))
+    .attr("stroke-width", d => (selected && selected === d ? 1.2 : 0.35));
+}
+
+function redrawAll(world) {
+  makeProjection();
+  drawBase(world);
+  drawMpa();
+  drawHauls();
+  gRoot.attr("transform", transform);
+}
+
+function setupZoom(world) {
+  const zoom = d3.zoom()
+    .scaleExtent([0.8, 8])
+    .on("start", () => svg.classed("dragging", true))
+    .on("end", () => svg.classed("dragging", false))
+    .on("zoom", (event) => {
+      transform = event.transform;
+      gRoot.attr("transform", transform);
+    });
+  svg.call(zoom);
+  svg.on("click", () => { selected = null; showDetail(null); drawHauls(); });
+
+  document.getElementById("btnReset").onclick = () => {
+    state.rotate = 0;
+    document.getElementById("rotate").value = 0;
+    document.getElementById("rotLabel").textContent = "0°";
+    svg.transition().duration(400).call(zoom.transform, d3.zoomIdentity);
+    transform = d3.zoomIdentity;
+    redrawAll(world);
+  };
+  document.getElementById("btnPeninsula").onclick = () => {
+    state.rotate = 60;
+    document.getElementById("rotate").value = 60;
+    document.getElementById("rotLabel").textContent = "60°";
+    redrawAll(world);
+    svg.transition().duration(400).call(zoom.scaleTo, 2.2);
+  };
+  document.getElementById("btnRoss").onclick = () => {
+    state.rotate = -180;
+    document.getElementById("rotate").value = -180;
+    document.getElementById("rotLabel").textContent = "-180°";
+    redrawAll(world);
+    svg.transition().duration(400).call(zoom.scaleTo, 1.8);
+  };
+}
+
+function wireControls(world) {
+  const yearMin = document.getElementById("yearMin");
+  const yearMax = document.getElementById("yearMax");
+  const densMin = document.getElementById("densMin");
+
+  function syncYears() {
+    let a = +yearMin.value, b = +yearMax.value;
+    if (a > b) { if (this === yearMin) b = a; else a = b; }
+    yearMin.value = a; yearMax.value = b;
+    state.yearMin = a; state.yearMax = b;
+    document.getElementById("yearMinLabel").textContent = a;
+    document.getElementById("yearMaxLabel").textContent = b;
+    drawHauls();
+  }
+  yearMin.oninput = syncYears;
+  yearMax.oninput = syncYears;
+
+  densMin.oninput = () => {
+    state.densMinLog = +densMin.value;
+    document.getElementById("densLabel").textContent =
+      state.densMinLog <= -2 ? "all" : `≥ 10^${state.densMinLog.toFixed(1)}`;
+    drawHauls();
+  };
+
+  function toggle(btn, key) {
+    btn.onclick = () => {
+      const on = btn.dataset.on !== "1";
+      btn.dataset.on = on ? "1" : "0";
+      btn.classList.toggle("on", on);
+      state[key] = on;
+      if (key === "showMpa") drawMpa();
+      else drawHauls();
+    };
+  }
+  toggle(document.getElementById("togZeros"), "showZeros");
+  toggle(document.getElementById("togMpa"), "showMpa");
+  toggle(document.getElementById("togHot"), "hotspotsOnly");
+
+  document.getElementById("colorMode").onchange = (e) => {
+    state.colorMode = e.target.value;
+    document.getElementById("legendText").textContent =
+      state.colorMode === "presence" ? "Presence (blue) vs absent (grey)" : "Krill density (log scale)";
+    document.getElementById("legendBar").style.background =
+      state.colorMode === "presence"
+        ? "linear-gradient(90deg, #b0b8be, #b0b8be 49%, #1f6f8b 51%, #1f6f8b)"
+        : "linear-gradient(90deg, #440154, #31688e, #35b779, #fde725)";
+    drawHauls();
+  };
+
+  document.getElementById("projSelect").onchange = (e) => {
+    state.proj = e.target.value;
+    redrawAll(world);
+  };
+
+  document.getElementById("rotate").oninput = (e) => {
+    state.rotate = +e.target.value;
+    document.getElementById("rotLabel").textContent = `${state.rotate}°`;
+    redrawAll(world);
+  };
+
+  const chips = document.getElementById("decadeChips");
+  for (let y = 1920; y <= 2010; y += 10) {
+    const b = document.createElement("button");
+    b.type = "button";
+    b.textContent = `${y}s`;
+    b.onclick = () => {
+      yearMin.value = Math.max(1926, y);
+      yearMax.value = Math.min(2016, y + 9);
+      syncYears.call(yearMin);
+    };
+    chips.appendChild(b);
+  }
+  const all = document.createElement("button");
+  all.type = "button";
+  all.textContent = "All years";
+  all.onclick = () => {
+    yearMin.value = 1926; yearMax.value = 2016;
+    syncYears.call(yearMin);
+  };
+  chips.appendChild(all);
+}
+
+async function main() {
+  const status = document.getElementById("status");
+  try {
+    const [world, haulData, mpa] = await Promise.all([
+      d3.json("https://cdn.jsdelivr.net/npm/world-atlas@2.0.2/land-50m.json"),
+      d3.json(DATA + "hauls.json"),
+      d3.json(DATA + "mpa.geojson"),
+    ]);
+    hauls = haulData;
+    mpaFeatures = mpa.features.map(rewind);
+    status.textContent = `${hauls.length.toLocaleString()} hauls loaded`;
+    makeProjection();
+    drawBase(world);
+    drawMpa();
+    drawHauls();
+    setupZoom(world);
+    wireControls(world);
+  } catch (e) {
+    console.error(e);
+    status.textContent = "Failed to load data. Serve from viz/poster (see README).";
+  }
+}
+main();
+</script>
+</body>
+</html>
